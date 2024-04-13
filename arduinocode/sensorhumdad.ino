@@ -1,9 +1,14 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include "DHT.h"
+#define DHTPIN 2
+#define DHTTYPE DHT11
 
-const char* ssid = "Galaxy A53 5G 0F62";
-const char* password =  "123456789@";
-const char* serverName = "http://192.168.190.149:3000/sensor";
+DHT dht(DHTPIN, DHTTYPE);
+
+const char* ssid = "HITRON-6FC0";  //NOMBRE RED WIFI
+const char* password =  "Dirtysouth4824joeys"; // CONTRASEÑA RED WIFI
+const char* serverName = "http://172.21.48.1:3000/datos"; //IP, PUERTO , TABLA
 
 int cont = 300;
 String ip;
@@ -41,8 +46,15 @@ void setup() {
 
 void loop() {
   //Send an HTTP POST request every 10 minutes
-
+  delay(2000); //Es un sensor lento, por lo que hay que darle tiempo.
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
   
+  if (isnan(h) || isnan(t)) {
+  Serial.println(F("Failed to read from DHT sensor!"));
+  return;
+  }
+
   if ((millis() - lastTime) > timerDelay) {
      int sensor = analogReadMilliVolts(2);
     //Check WiFi connection status
@@ -71,9 +83,14 @@ void loop() {
       
       // If you need an HTTP request with a content type: application/json, use the following:
       http.addHeader("Content-Type", "application/json");
-      int httpResponseCode = http.POST("{\"value\":\"" + String(sensor) + "\",\"ip\":\"192.169.0.31\",\"device\":\"espjosue\"}");
-
-  
+      //int httpResponseCode = http.POST("{\"value\":\"" + String(sensor) + "\",\"ip\":\"localhost\",\"device\":\"espdiego\"}");
+      int httpResponseCode = http.POST("{\"nombrecompleto\":\"Josue Maquin\","
+                                  "\"correouniversidad\":\"holito@miumg.edu.gt\","
+                                  "\"carne\":\"465463\","
+                                  "\"latitud\":\"1\","
+                                  "\"longitud\":\"2\","                                  
+                                  "\"humedad\":" + String(h) + ","
+                                  "\"temperatura\":" + String(t) + "}");
      
       Serial.print("HTTP Response code: ");
       Serial.println(httpResponseCode);
